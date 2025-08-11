@@ -1,25 +1,18 @@
 version: 0.0
 os: linux
-
 files:
   - source: /
-    destination: /home/ec2-user/react-app
-
+    destination: /home/ubuntu/myapp
 hooks:
+  BeforeInstall:
+    - location: scripts/clean_old.sh
+      timeout: 60
+  AfterInstall:
+    - location: scripts/build_image.sh
+      timeout: 300
   ApplicationStart:
-    - location: ""
-      timeout: 600
-      runas: ec2-user
-      commands:
-        - cd /home/ec2-user/react-app
-        - echo "Stopping old container..."
-        - docker stop react-container || true
-        - docker rm react-container || true
-        - echo "Installing dependencies..."
-        - npm install
-        - echo "Building React app..."
-        - npm run build
-        - echo "Building Docker image..."
-        - docker build -t react-pipeline .
-        - echo "Running container..."
-        - docker run -d --name react-container -p 80:3000 react-pipeline
+    - location: scripts/start_container.sh
+      timeout: 300
+  ApplicationStop:
+    - location: scripts/stop_container.sh
+      timeout: 300
